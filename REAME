@@ -1,0 +1,15 @@
+Implantar uma Máquina Virtual no Azure
+
+Para criar uma máquina virtual devemos: Ir menu lateral, clicar em Máquinas Virtuais e depois em Adicionar. Devemos preencher os campos 
+obrigatórios da assinatura e Grupo de Recursos, nome da VM, região imagem (ex: Ubuntu, Windows Server), tamanho, usuário e senha/SSH. 
+Depois devemos configurar opções de rede, disco do sistema operacional e outras opções conforme necessário. Temos que revisar e depois 
+ir criar para iniciar a implantação.
+
+Agora para adicionar um Disco à VM devemos: Ir menu da VM, clicar em Discos, adicionar disco de dados, criar um novo disco ou selecione 
+um existente, definir nome, tamanho, tipo de desempenho (Premium, Standard, etc.). Temos clicar em Salvar para anexar o disco à VM. 
+
+No Windows, inicialize e formate o disco usando o Gerenciamento de Disco.
+
+Por final desse conteúdo, como desanexar o Disco da VM: Devemos, no sistema operacional da VM, desmonte o disco, clique com o botão direito no volume e escolha Ejetar ou 
+Desmontar Volume. Selecione o disco de dados que deseja remover e clique em Desanexar, confirme a operação. O disco será removido da VM, 
+mas permanecerá no grupo de recursos para uso futuro ou exclusão.
