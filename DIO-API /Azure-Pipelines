@@ -1,0 +1,42 @@
+# Starter pipeline
+# Star with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+Trigger:
+- main
+
+pool:
+ -vmImage: ununtu-latest
+
+variables:
+ solution: './APITempoDIO/*.sln'
+ buildPlatform: 'Any CPU'
+ builConfiguration: 'Release'
+
+
+steps:
+
+Settings
+-  task: UseDotnEt@2
+   displayName: 'Instal .Net SDK'
+   inputs:
+    packageType: 'sdk'
+    version: '8.x'
+
+- script: dotnet restore $(solution)
+  dsplayName: 'Restore Solution'
+
+- script: dotnet build $(solution) --configuration $(buildConfigurantion)
+  dsplayName: 'Build Solution'
+
+- script: dotnet test $(solution) --configuration $(buildConfigurantion) --no-build --collect:"XPlat Code Coverage"
+  dsplayName: 'Build Solution'
+
+Settings
+- task: Docker@2
+inputs:
+  containerRegistry: 'acrapidemosambo'
+  repository: 'api-dio-test'
+  command: 'buildAndPush'
+  Dockerfile: './APITempoDIO/APITempoDIO/Dockerfile'
