@@ -1,0 +1,218 @@
+// Salvar em storage
+using Microsoft.AspNetCOre.Http;
+using Microsoft.AspNetCOre.Mvc;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
+
+namespace fnPostDataStorage
+{
+     
+     public class Function1
+     {
+        private readonly ILogger<Function1> _logger;
+
+        public Function1(ILogger<Function1> logger)
+        {
+            _logger - logger;
+        } 
+
+        [Function("dataStorage")]
+
+        public IActionResult Run ([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        {
+            _logger.LogInformation("Processando a Imagem no Storage");
+            
+            try
+            {
+                if(!req.Headers.TryGetValue("file-type", out var fileTypeHeader))
+                {
+                    return new BadRequestObjectResult("O cabeçalho 'file-type' é obrigatório");
+                }
+
+                var fileType = fileTypeHeader.ToSring();
+                var form = await req.ReadFormAsync();
+                var file = form.Files("file");
+
+                if(file == null || file.Length == 0)
+                {
+                    return new BadRequestObjectResult("O arquivo não foi enviado");
+                }
+
+                stringconnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+                string containerName = fileType;
+                BlobClient blobClient = new BlobClient(connectionString, containerName, file.FileName);
+                BlobContainerClient containerClient = new BlobContainerClient(connectionString, containerName);
+
+                await containerClient.CreateOfNotExistsAsync();
+                await containerClient.SetAccessPolicyAsync(PublicaccessType.BlobContainer);
+                await blobClient.UploadAsync(file.OpenReadStream(), true);
+
+                string (var stream = file.OpenReadStream() )
+                {
+                    await blob.UploadAsync(stream, true);
+                }
+
+                _logger.LogInformation($"Arquivo {file.FileName} armazenado com sucesso");
+
+                return new OkObjetResult (new
+                {
+                    Message = "Arquivo armazenado com sucesso",
+                    BlobUri = blob.Uri
+                })
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+     }
+}
+
+// Função Cosmos DB
+using System;
+using System.Collections.Generi;
+using System.Linq;
+using System.Text;
+using System..Threading.Tasks;
+
+namespace fnPostDatabase
+{
+    internal class MovieRequest
+    {
+        public string id { get { return Guid.NewGuid().ToString();}}
+        public string title { get; set; }
+        public string year { get; set; }
+        public string video { get; set: }
+        public string thumb { get; set; }
+    }
+}
+
+// Salvar em CosmosDB
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
+
+namespace fnPostDatabase
+{
+    public class Function1
+    {
+        private readonly ILogger<Function1> _logger;
+
+        public Function1(Ilogger<Function1> logger)
+        {
+            _logger = logger;
+        }
+
+        [Function("movie")]
+        [CosmosDBOutput("%DatabaseName%", "movies", Connection = "CosmoDBConnection", CreateIfNoExists = true)]
+
+        public object? Run ([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        {
+            _logger.LogInformation("C# HTTP Trigger function processed a request.");
+
+            MovRest me = null;
+
+            var content = await new StreamReader(req.Body).ReadToEndAsync();
+
+            try
+            {
+                movie = JsonConvert.DeseriaLizeObject<MovieRequest>(content);
+            }
+            catch (Exception ex)
+            {
+                return new BadRequestObjectResult("Erro ao deserializar o objeto: " + ex.Message);
+            }
+
+            return JsonConvert.SerializeObject(movie);
+        }
+    }
+}
+
+// Filtrar CosmosDB
+using Microsot.AspNetCore.Http;
+using Microsot.AspNetCore.Mvc;
+using Microsot.Azure.Functions.Worker;
+using Microsot.Extensions.Logging;
+
+namespace fnGetMovieDetail
+{
+    public class Function1
+    {
+        private readonly ILogger<Function1> _logger;
+
+        public Function1(Ilogger<function1>)
+        {
+            _logger = logger;
+            _cosmosCLiente = cosmosCLiente;
+        }
+
+        [Function("detail")]
+
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get") HtttpRequest req])
+        {
+            _logger.LogInformation("C# HTTP Trigger function processed a request.");
+            var container = _cosmosCLiente.GetContainer("DioFlixDB", "movies");
+            var id = req.Query["id"];
+            var query = $"SELECT * FROM c WHERE c.id = @id";
+            var queryDefinition = new QueryDefinition(query).WithParameter("@id", id);
+            var result = container.GetItemQueryIterator<MovieResult>(queryDefinition);
+            var results = new List<MovieResult>();
+            {
+                foreach (var item in await result.ReadNextAsync())
+                {
+                    results.Add(item);
+                }
+            }
+            var responseMessage = req.CreateResponse(System.Net.HttpStatusCode.OK);
+            await responseMessage.WriteJsonAsync(results.FirstOrDefault());
+
+            return responseMessage;
+        }
+    }
+}
+
+// Lista CosmosDB
+
+using Microsot.AspNetCore.Http;
+using Microsot.AspNetCore.Mvc;
+using Microsot.Azure.Functions.Worker;
+using Microsot.Extensions.Logging;
+
+namespace fnGetMovieDetail
+{
+    public class Function1
+    {
+        private readonly ILogger<Function1> _logger;
+
+        public Function1(Ilogger<function1>)
+        {
+            _logger = logger;
+            _cosmosCLiente = cosmosCLiente;
+        }
+
+        [Function("all")]
+
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get") HtttpRequest req])
+        {
+            _logger.LogInformation("C# HTTP Trigger function processed a request.");
+            var container = _cosmosCLiente.GetContainer("DioFlixDB", "movies");
+            var id = req.Query["id"];
+            var query = $"SELECT * FROM c";
+            var queryDefinition = new QueryDefinition(query);
+            var result = container.GetItemQueryIterator<MovieResult>(queryDefinition);
+            var results = new List<MovieResult>();
+            {
+                foreach (var item in await result.ReadNextAsync())
+                {
+                    results.Add(item);
+                }
+            }
+            var responseMessage = req.CreateResponse(System.Net.HttpStatusCode.OK);
+            await responseMessage.WriteJsonAsync(results);
+
+            return responseMessage;
+        }
+    }
+}
+
